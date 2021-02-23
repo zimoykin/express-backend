@@ -12,14 +12,14 @@ services:
      # context: .
     volumes:
         - mongodata:/data/db
-    container_name: mongodb
+    container_name: mongo-express
     environment:
         #MONGO_DATA_DIR: /var/lib/mongo/data/mongodata
         MONGO_INITDB_ROOT_USERNAME: user
         MONGO_INITDB_ROOT_PASSWORD: pass
         MONGO_INITDB_DATABASE: express_db
     ports:
-        - '27017:27017'
+        - '27013:27013'
         
   # mongo-express:
   #   image: mongo-express

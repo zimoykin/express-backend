@@ -1,7 +1,8 @@
 import { logger } from './middlewares/logger'
 import * as express from 'express';
-import { authorization } from './middlewares/authorrization';
+import { authorization } from './middlewares/authorrization'
 
+//const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config();
 
 //init
