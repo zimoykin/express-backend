@@ -1,19 +1,14 @@
-const { v4: uuidv4 } = require("uuid");
+import {UserPublic} from '../../model/User'
+import { Request, Response } from 'express'
+import { v4 as uuidv4 } from 'uuid'
+
 var router = require("express").Router();
 
-let users = [
-  {
-    id: uuidv4(),
-    username: "Dmitry Zimoykin",
-  },
-  {
-    id: uuidv4(),
-    username: "Harley Davidson",
-  },
-];
+//test
+let user: UserPublic[] = [{ id: uuidv4(), username: 'Admin', email: 'admin@goverment.com'}]
 
-router.get("/users", (req, res, next) => {
-  return res.json({ users: users });
+router.get("/users", (req: Request, res: Response, next) => {
+  return res.json( user );
 });
 
 module.exports = router;
