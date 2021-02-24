@@ -1,9 +1,6 @@
 import { sign as jwt } from "jsonwebtoken";
 import * as mongoose from "mongoose";
 
-const { userInfo } = require("os");
-const { Interface } = require("readline");
-
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 

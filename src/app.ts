@@ -14,12 +14,12 @@ var db: Mongoose = undefined;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(logger);
-//app.use(authorization)
 
 const port = process.env.PORT || 8080;
 
 //routes
-app.use("/", require("./routes/index.ts"));
+app.use("/", require("./routes/routes.ts"));
+
 
 mongoose.connect("mongodb://localhost:27017/expdb", { 
     useNewUrlParser: true, 
@@ -30,13 +30,15 @@ mongoose.connect("mongodb://localhost:27017/expdb", {
     useCreateIndex: true,
     authSource: "admin"
 })
-.then( () => {})
+.then( () => {
+    console.log("Connection Successful!");
+})
 .catch ( (error) => { console.log (error)})
 
 mongoose.connection.on("error", () => {
     console.log("mongo error")});
 mongoose.connection.once("open", () => {
-  console.log("Connection Successful!");
+  console.log("db connected!");
 });
 
 //start

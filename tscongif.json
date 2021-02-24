@@ -3,12 +3,14 @@
       "sourceMap": true,
       "target": "es2017",
       "outDir": "./dist",
-      "baseUrl": "./src"
+      "baseUrl": "./src",
+      "typeRoots": ["./node_modules/@types", "./src/util"]
     },
     "include": [
       "src/**/*.ts"
     ],
     "exclude": [
       "node_modules"
-    ]
+    ],
+    "files":["custom.d.ts"]
 }

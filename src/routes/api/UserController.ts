@@ -1,29 +1,26 @@
-import {
-  UserPublic,
-  UserAccess,
-  getAccess,
-  index,
-  Users,
-} from "../../model/User";
-import { Request, Response } from "express";
+import { getAccess, index, Users } from "../../model/User";
+import { Request, Response, Router } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { mongoose } from "../../app";
+import { authorization } from "../../middlewares/authorrization";
 
-var router = require("express").Router();
+var router: Router = require("express").Router();
 
 //index
-router.get("/users", async (req: Request, res: Response, next) => {
-  const users = await Users.find();
-  return res.json(
-    users.map((val) => {
-      return index(val);
-    })
-  );
-});
+router.get("/", async (req: Request, res: Response, next) => {
+  console.log ('index users')
+    const users = await Users.find();
+    return res.json(
+      users.map((val) => {
+        return index(val);
+      })
+    );
+  });
 
 //register
-router.post("/users/register", async (req: Request, res: Response, next) => {
+router.post("/register", async (req: Request, res: Response, next) => {
+
   let userAccess = getAccess(uuidv4());
+
   let user = new Users({
     id: userAccess.id,
     username: req.body.username,
@@ -42,10 +39,11 @@ router.post("/users/register", async (req: Request, res: Response, next) => {
       return res.json(userAccess);
     }
   });
+
 });
 
 //login
-router.post("/users/login", async (req: Request, res: Response, next) => {
+router.post("/login", async (req: Request, res: Response, next) => {
   let user = await Users.findOne({ email: req.body.email });
 
   if (user) {

@@ -5,7 +5,7 @@
   "main": "app.ts",
   "scripts": {
     "test": "everythings will be ok",
-    "start": "ts-node ./src/app.ts"
+    "start": "ts-node ./src/app.ts --files"
   },
   "author": "Zimoykin",
   "license": "ISC",
