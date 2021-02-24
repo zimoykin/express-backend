@@ -1,54 +1,75 @@
 import { sign as jwt } from "jsonwebtoken";
-import { mongoose } from "../app";
+import * as mongoose from "mongoose";
 
 const { userInfo } = require("os");
 const { Interface } = require("readline");
 
-const bcrypt = require('bcrypt')
-require('dotenv').config();
+const bcrypt = require("bcrypt");
+require("dotenv").config();
 
-export interface User {
-    id:string
-    username:string
-    password:string
-    email:string
+interface IUser extends mongoose.Document {
+  id: string;
+  username: string;
+  password: string;
+  email: string;
+  accessToken: string;
+  refreshToken: string;
+  created: Date;
 }
+
+//Schema
+const UserSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  refreshToken: {
+    type: String,
+    required: true,
+  },
+  created: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+export const Users = mongoose.model<IUser>("User", UserSchema);
+
+//addiction interfaces
 
 export interface UserPublic {
-    id: string
-    username: string
-    email: string
+  id: string;
+  username: string;
+  email: string;
 }
 export interface UserAccess {
-    id: string
-    username: string
-    email: string
-    accessToken: string
-    refreshToken: string
+  id: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
-const userSchema = new mongoose.Schema({ 
-    id: String,
-    username: String,
-    password: String,
-    email: String,
-    accessToken: String,
-    refreshToken: String
-})
+export const getAccess = (user: string): UserAccess => {
+  const jwt_secret = process.env.JWTSECRET;
 
-export const UserModel = mongoose.model('Users', userSchema)
+  let accessToken = jwt({ id: user }, jwt_secret, { expiresIn: "1h" });
+  let refreshToken = jwt({ id: user }, jwt_secret);
 
-export const getAccess = (user: User) : UserAccess => {
+  return { id: user, accessToken: accessToken, refreshToken: refreshToken };
+};
 
-   const jwt_secret = process.env.JWTSECRET
-
-    let accessToken = jwt({ id: user.id }, jwt_secret, { expiresIn: '1h' })
-    let refreshToken = jwt({ id: user.id }, jwt_secret)
-
-    return { id: user.id, username: user.username, email: user.email, accessToken: accessToken, refreshToken: refreshToken }
-
-}
-
-export const index = (user: User) : UserPublic => {
-    return { id: user.id, username: user.username, email: user.email }
-}
+export const index = (user: IUser): UserPublic => {
+  return { id: user.id, username: user.username, email: user.email };
+};

@@ -1,48 +1,62 @@
-import { User, UserPublic, UserAccess, getAccess, index, UserModel } from '../../model/User'
-import { Request, Response } from 'express'
-import { v4 as uuidv4 } from 'uuid'
-import { mongoose } from '../../app';
+import {
+  UserPublic,
+  UserAccess,
+  getAccess,
+  index,
+  Users,
+} from "../../model/User";
+import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
+import { mongoose } from "../../app";
 
 var router = require("express").Router();
-//var MongoClient = require('mongodb').MongoClient;
-
-//test database :)
-let users: User[] = [{ id: uuidv4(), username: 'Admin', email: 'admin@goverment.com', password:"@dmin"}]
-
 
 //index
-router.get("/users", async ( req: Request, res: Response, next) => {
-  const users = await UserModel.find()
-  return res.json(users)
-})
+router.get("/users", async (req: Request, res: Response, next) => {
+  const users = await Users.find();
+  return res.json(
+    users.map((val) => {
+      return index(val);
+    })
+  );
+});
 
 //register
-router.post('/users/register', async (req: Request, res: Response, next) => {
+router.post("/users/register", async (req: Request, res: Response, next) => {
+  let userAccess = getAccess(uuidv4());
+  let user = new Users({
+    id: userAccess.id,
+    username: req.body.username,
+    email: req.body.email,
+    password: req.body.password,
+    refreshToken: userAccess.refreshToken,
+  });
 
-  let user: User = {id: uuidv4(), username: req.body.username, email: req.body.email, password: req.body.password}
-  let userAccess = getAccess(user)
-
-  await new UserModel({ id: user.id, username: user.username, password: user.password, email: user.email, accessToken: userAccess.accessToken, refreshToken: userAccess.refreshToken})
-  .save( () => {
-      console.log ('user saved!')
-  })
-
-  return res.json (getAccess(user))
-
-})
+  return user.save((err, saved) => {
+    if (err) {
+      //could not create model
+      res.statusCode = 422;
+      return res.send({ error: err });
+    } else {
+      console.log("user saved!");
+      return res.json(userAccess);
+    }
+  });
+});
 
 //login
-router.post('/users/login', (req: Request, res: Response, next) => {
+router.post("/users/login", async (req: Request, res: Response, next) => {
+  let user = await Users.findOne({ email: req.body.email });
 
-  let user = users.filter( val => {
-    return (val.email == req.body.email && val.password == req.body.password )
-  })[0]
   if (user) {
-    return res.json (getAccess(user))
+    if (user.password != req.body.password) {
+      return res.sendStatus(401);
+    } else {
+      return res.json(getAccess(user.id));
+    }
   } else {
-    return res.sendStatus(404)
+    return res.sendStatus(404);
   }
-
-})
+});
 
 module.exports = router;
