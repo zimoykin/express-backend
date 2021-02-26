@@ -1,37 +1,65 @@
-import  * as mongoose from "mongoose";
+import * as mongoose from "mongoose";
 import { app } from "./app";
-import { Users } from "./model/User";
 
-const supertest = require("supertest");
-const request = supertest(app);
 
-mongoose
-  .connect("mongodb://localhost:27017/expdb", {
+const request = require("supertest");
+require("dotenv").config();
+
+let token: string;
+
+beforeAll( (done) => {
+  console.log("Test started");
+
+  mongoose.connect("mongodb://localhost:27017/expdb", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    user: "user",
-    pass: "pass",
+    user: process.env.ADMIN_DB,
+    pass: process.env.PASSWORD_DB,
     poolSize: 10,
     useCreateIndex: true,
     authSource: "admin",
-  })
+  });
 
-mongoose.connection.on("error", () => {
-  console.log("mongo error");
-});
-mongoose.connection.once("open", () => {
-  console.log("db connected!");
-  const port = process.env.PORT || 8080;
-  //start
-  app.listen(port, () => {
-    console.log(`server started on ${port}`);
+  mongoose.connection.once("open", () => {
+    console.log("db connected!");
+
+    request(app)
+      .post("/api/users/login")
+      .send({
+        email: process.env.admin_email || '',
+        password: process.env.admin_password || "",
+      })
+      .end((err, response) => {
+        if(err) {
+          throw new Error();
+        }
+
+        if (response.statusCode == 200) {
+          token = response.body.accessToken;
+          done();
+        } else {
+          throw new Error();
+        }
+      });
   });
 });
 
 describe("Test #1 api/users + connect to base", () => {
   it("gets the test endpoint", async (done) => {
-    const response = await request.get('/api/users');
+    const response = await request(app).get("/api/users");
     expect(response.status).toBe(200);
+    expect(response.type).toBe("application/json");
+    done();
+  });
+});
+
+describe("Test #2 api/todos", () => {
+  it("gets the test endpoint", async (done) => {
+    const response = await request(app)
+      .get("/api/todos")
+      .set("Authorization", `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.type).toBe("application/json");
     done();
   });
 });

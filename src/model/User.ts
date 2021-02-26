@@ -1,7 +1,10 @@
+
 import { sign as jwt } from "jsonwebtoken";
 import * as mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const bcrypt = require("bcrypt");
+
 require("dotenv").config();
 
 interface IUser extends mongoose.Document {
@@ -15,7 +18,7 @@ interface IUser extends mongoose.Document {
 }
 
 //Schema
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   id: {
     type: String,
     required: true,
@@ -43,7 +46,13 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-export const Users = mongoose.model<IUser>("User", UserSchema);
+// userSchema.methods.generateHash = (password) : string => {
+//   return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+// };
+
+// userSchema.methods.validPassword = (password) => {
+//   return bcrypt.compareSync(password, password);
+// };
 
 //addiction interfaces
 
@@ -70,3 +79,49 @@ export const getAccess = (user: string): UserAccess => {
 export const index = (user: IUser): UserPublic => {
   return { id: user.id, username: user.username, email: user.email };
 };
+
+
+userSchema.pre<IUser> ('save', function (next) {
+
+  if(!this.isModified('password')){
+    return next();
+  } 
+
+  bcrypt.genSalt(8, (err, salt) => {
+    if (err) return next(err);
+
+    bcrypt.hash(this.password, salt, (err, hash) => {
+      if (err) return next(err);
+
+      this.password = hash;
+      next();
+    });
+  });
+
+});
+
+
+export const UserModel = mongoose.model<IUser>("User", userSchema);
+
+//CREATE ADMIN
+let user = UserModel.findOne({ email: process.env.ADMINEMAIL }).then((user) => {
+  if (user == undefined) {
+    const admin_id = uuidv4();
+
+    const admin = new UserModel({
+      id: admin_id,
+      username: "admin",
+      email: process.env.ADMINEMAIL,
+      password: process.env.ADMINPASSWORD,
+      refreshToken: getAccess(admin_id).refreshToken,
+    });
+
+    admin.save(function (err, data) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(`success! ${data}`);
+      }
+    });
+  }
+});
