@@ -1,11 +1,11 @@
 import * as mongoose from "mongoose";
 
-interface ITodo extends mongoose.Document {
+export interface ITodo extends mongoose.Document {
     id: string;
     user: string;
     title: string;
     description: string;
-    created: Date;
+    createdAt: Date;
   }
   
   //Schema

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { Todos } from "../../model/Todo";
+import { Todos, ITodo} from "../../model/Todo";
 import { Request, Response } from "express";
 import { authorization } from "../../middlewares/authorrization";
 import User from "../../model/User";
@@ -9,10 +9,24 @@ router.use(authorization)
 
 //index
 router.get('/', async (req: Request, res: Response) => {
-    const todos = await Todos.find();
+    const todos = await Todos.find().sort({ createdAt: -1});
     return res.json(todos.map( (todo) => {
-        return ({ id: todo.id, title: todo.title, description: todo.description, created: todo.created })
+        return ({ id: todo.id, title: todo.title, description: todo.description, created: todo.createdAt })
     }))
+})
+//get one
+router.get('/:todoid', async (req: Request, res: Response) => {
+
+    let todoid = req.params.todoid 
+    if (!todoid) throw Error ('could not read params')
+    const todo = await Todos.findOne({ id: todoid });
+
+    if (!todo) {
+        return res.sendStatus(404)
+    }
+
+    return res.json ({ id: todo.id, title: todo.title, description: todo.description, created: todo.createdAt})
+    
 })
 
 //create
