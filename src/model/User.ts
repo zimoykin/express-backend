@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema<IUser>({
   refreshToken: {
     type: String,
     required: true,
+  },
+  active: {
+    type: Boolean,
+    required: true
   }
 }, {timestamps : true});
 
@@ -60,13 +64,14 @@ export const getAccess = (user: string): UserAccess => {
   const jwt_secret = process.env.JWTSECRET;
 
   let accessToken = jwt({ id: user }, jwt_secret, { expiresIn: "1h" });
-  let refreshToken = jwt({ id: user }, jwt_secret);
+  let refreshToken = jwt({ id: user }, jwt_secret, { expiresIn: "24h" });
 
   return { id: user, accessToken: accessToken, refreshToken: refreshToken };
 };
 
 export const index = (user: IUser): UserPublic => {
-  return { id: user.id, username: user.username, email: user.email };
+  if (!user) { throw Error('could nor convert user'); }
+  else {  return { id: user.id, username: user.username, email: user.email }; }
 };
 
 
@@ -126,6 +131,7 @@ let user = User.findOne({ email: process.env.ADMINEMAIL }).then((user) => {
       email: process.env.ADMINEMAIL,
       password: process.env.ADMINPASSWORD,
       refreshToken: getAccess(admin_id).refreshToken,
+      active: true
     });
 
     admin.save(function (err, data) {

@@ -27,12 +27,8 @@ interface ITodo extends mongoose.Document {
     description: {
       type: String,
       required: true
-    },
-    created: {
-      type: Date,
-      default: Date.now,
-    },
-  });
+    }
+  }, {timestamps : true});
   
   export const Todos = mongoose.model<ITodo>("Todos", TodoSchema);
   

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import User, { index } from "../model/User";
+import User, { index, IUser } from "../model/User";
 
 const jwt = require("jsonwebtoken");
 
@@ -17,8 +17,16 @@ export const authorization = async (
         res.statusCode = 401;
         return res.json({ error: "token is expired!" });
       } else {
-        (req as any).user = index(await User.findOne({ id: payload.id }));
-        next();
+        await User.findOne({ id: payload.id, active: true }, function(err:Error, val:IUser) {
+          if(err) throw err; 
+          if (val) {
+            (req as any).user = index(val);
+            next();
+          } else {
+            res.sendStatus(404);
+          }
+        })
+
       }
     } else {
       res.sendStatus(401);
@@ -29,3 +37,25 @@ export const authorization = async (
   }
   
 };
+
+export async function checkRefToken (ref: string) : Promise<IUser> {
+
+  return new Promise ( (resolve, reject ) => {
+    let payload = jwt.decode(ref);
+    if (!payload) {
+      reject ('could not read token')
+    }
+
+    if (Date.now() >= payload.exp * 1000) { 
+      reject('token is expired')
+    }
+
+    User.findOne({ id: payload.id, active: true }, (err: Error, result: IUser) => {
+      if (err) reject(err)
+      if(!result) reject ('user not found')
+      resolve(result)
+    })
+
+  })
+
+}

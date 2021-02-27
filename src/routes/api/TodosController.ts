@@ -8,7 +8,7 @@ var router = require("express").Router();
 router.use(authorization)
 
 //index
-router.get("/", async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
     const todos = await Todos.find();
     return res.json(todos.map( (todo) => {
         return ({ id: todo.id, title: todo.title, description: todo.description, created: todo.created })
@@ -16,7 +16,7 @@ router.get("/", async (req: Request, res: Response) => {
 })
 
 //create
-router.post("/", async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
 
     let userId = (req as any).user.id
 
@@ -36,6 +36,20 @@ router.post("/", async (req: Request, res: Response) => {
         })
     })
 });
+
+router.put('/:todoid', async (req: Request, res: Response) => {
+
+        let todoid = req.params.todoid
+        if (!todoid) throw Error('could not read id in request')
+
+        return Todos.findOneAndUpdate( { id:todoid }, req.body, { }, (err, result) => {
+          if (err) throw err;
+          if (!result) return res.sendStatus(404)
+          return res.json( result )
+        })
+
+    }
+)
 
 router.delete('/:todoid', async (req: Request, res: Response) => {
     let todoid = req.params.todoid

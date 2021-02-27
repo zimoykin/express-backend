@@ -2,8 +2,10 @@ import { getAccess, index, IUser, UserModel } from "../../model/User";
 import { NextFunction, Request, Response, Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import User from "../../model/User";
+import { checkRefToken } from "../../middlewares/authorrization";
 
 var router: Router = require("express").Router();
+const jwt = require("jsonwebtoken");
 
 //index
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
@@ -64,6 +66,28 @@ router.post("/login", (req: Request, res: Response) => {
   }
 );
 
+//refresh
+router.post ('/refresh', (req: Request, res: Response) => {
+
+  let refreshToken = req.body.ref
+  if(!refreshToken) throw Error('refresh token not found in body')
+
+  return checkRefToken(refreshToken)
+  .then ( (user) => {
+    const access = getAccess(user.id)
+    return user.update( {refreshToken: access.refreshToken }).then ( (val) => {
+      return res.json(access)
+    })
+  })
+  .catch ( (err) => {
+    res.statusCode = 400
+    return res.json({error: err})
+  })
+
+
+})
+
+//delete
 router.delete("/:userid", async (req: Request, res: Response) => {
   let userid = req.params.userid;
   if (!userid) {
