@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Todos } from "../../model/Todo";
 import { Request, Response } from "express";
 import { authorization } from "../../middlewares/authorrization";
-import { UserModel } from "../../model/User";
+import User from "../../model/User";
 
 var router = require("express").Router();
 router.use(authorization)
@@ -20,7 +20,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     let userId = (req as any).user.id
 
-    return UserModel.findOne({ id: userId }).map ( (user) => {
+    return User.findOne({ id: userId }).map ( (user) => {
         const todos = new Todos ({ 
             id: uuidv4(),
             user: user,

@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 
 require("dotenv").config();
 
-interface IUser extends mongoose.Document {
+export interface IUser extends mongoose.Document {
   id: string;
   username: string;
   password: string;
@@ -15,17 +15,18 @@ interface IUser extends mongoose.Document {
   accessToken: string;
   refreshToken: string;
   created: Date;
+  comparePassword(candidatePassword: string):Promise<boolean>;
 }
 
 //Schema
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema<IUser>({
   id: {
     type: String,
     required: true,
   },
   username: {
     type: String,
-    required: true,
+    required: true
   },
   password: {
     type: String,
@@ -39,20 +40,8 @@ const userSchema = new mongoose.Schema({
   refreshToken: {
     type: String,
     required: true,
-  },
-  created: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// userSchema.methods.generateHash = (password) : string => {
-//   return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-// };
-
-// userSchema.methods.validPassword = (password) => {
-//   return bcrypt.compareSync(password, password);
-// };
+  }
+}, {timestamps : true});
 
 //addiction interfaces
 
@@ -87,7 +76,7 @@ userSchema.pre<IUser> ('save', function (next) {
     return next();
   } 
 
-  bcrypt.genSalt(8, (err, salt) => {
+  bcrypt.genSalt(8, (err: Error, salt) => {
     if (err) return next(err);
 
     bcrypt.hash(this.password, salt, (err, hash) => {
@@ -100,15 +89,38 @@ userSchema.pre<IUser> ('save', function (next) {
 
 });
 
+userSchema.pre<IUser>('validate', function(next) {
+  if (this.password === '') {
+      this.invalidate('', 'password couldnt be empty');
+  }
+  if (this.email === '') {
+    this.invalidate('', 'email couldnt be empty');
+  }
 
-export const UserModel = mongoose.model<IUser>("User", userSchema);
+  next();
+});
+
+userSchema.methods.comparePassword = function(candidatePassword: string) : Promise<boolean>  {
+  return new Promise ( (resolve, reject) => {
+      bcrypt.compare(candidatePassword, this.password, (err: Error, success: boolean) => {
+        if(err) reject(err)
+        return resolve(success)
+    })
+  })
+
+};
+
+
+export interface UserModel extends mongoose.Model<IUser> {}
+const User = mongoose.model<IUser, UserModel>('User', userSchema)
+export default User
 
 //CREATE ADMIN
-let user = UserModel.findOne({ email: process.env.ADMINEMAIL }).then((user) => {
+let user = User.findOne({ email: process.env.ADMINEMAIL }).then((user) => {
   if (user == undefined) {
     const admin_id = uuidv4();
 
-    const admin = new UserModel({
+    const admin = new User({
       id: admin_id,
       username: "admin",
       email: process.env.ADMINEMAIL,

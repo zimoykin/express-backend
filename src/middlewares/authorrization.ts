@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { index, UserModel } from "../model/User";
+import User, { index } from "../model/User";
 
 const jwt = require("jsonwebtoken");
 
@@ -17,7 +17,7 @@ export const authorization = async (
         res.statusCode = 401;
         return res.json({ error: "token is expired!" });
       } else {
-        (req as any).user = index(await UserModel.findOne({ id: payload.id }));
+        (req as any).user = index(await User.findOne({ id: payload.id }));
         next();
       }
     } else {
