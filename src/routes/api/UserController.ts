@@ -8,7 +8,7 @@ var router: Router = require("express").Router();
 const jwt = require("jsonwebtoken");
 
 //index
-router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", async (req: Request, res: Response) => {
   return User.find((err, users) => {
     if (err) {
       return res.sendStatus(401);
@@ -70,7 +70,7 @@ router.post("/login", (req: Request, res: Response) => {
 router.post ('/refresh', (req: Request, res: Response) => {
 
   let refreshToken = req.body.ref
-  if(!refreshToken) throw Error('refresh token not found in body')
+  if(!refreshToken) throw Error('refresh token not found')
 
   return checkRefToken(refreshToken)
   .then ( (user) => {

@@ -9,26 +9,21 @@ router.use(authorization)
 
 //index
 router.get('/', async (req: Request, res: Response) => {
-    const todos = await Todos.find().sort({ createdAt: -1});
+    const todos = await Todos.find().sort({ createdAt: 'desc'});
     return res.json(todos.map( (todo) => {
         return ({ id: todo.id, title: todo.title, description: todo.description, created: todo.createdAt })
     }))
 })
 //get one
 router.get('/:todoid', async (req: Request, res: Response) => {
-
     let todoid = req.params.todoid 
     if (!todoid) throw Error ('could not read params')
     const todo = await Todos.findOne({ id: todoid });
-
     if (!todo) {
         return res.sendStatus(404)
     }
-
-    return res.json ({ id: todo.id, title: todo.title, description: todo.description, created: todo.createdAt})
-    
+    return res.json ({ id: todo.id, title: todo.title, description: todo.description, created: todo.createdAt}) 
 })
-
 //create
 router.post('/', async (req: Request, res: Response) => {
 
@@ -50,7 +45,6 @@ router.post('/', async (req: Request, res: Response) => {
         })
     })
 });
-
 router.put('/:todoid', async (req: Request, res: Response) => {
 
         let todoid = req.params.todoid
@@ -64,7 +58,6 @@ router.put('/:todoid', async (req: Request, res: Response) => {
 
     }
 )
-
 router.delete('/:todoid', async (req: Request, res: Response) => {
     let todoid = req.params.todoid
     if (todoid) {
